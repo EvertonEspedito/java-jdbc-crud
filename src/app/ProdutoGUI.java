@@ -1,15 +1,24 @@
 package app;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
+
+//COMPILAR:  javac --module-path $PATH_TO_FX --add-modules javafx.controls,javafx.fxml -cp "lib/*" -d out src/app/*.java
+//EXECUTAR:  java \ --module-path $PATH_TO_FX \ --add-modules javafx.controls,javafx.fxml \ -cp "out:lib/*" \ app.ProdutoGUI
+
+
 import javafx.application.Application;
-import javafx.geometry.Insets;
-import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.*;
+import javafx.stage.Stage;
+import javafx.geometry.Insets;
+
+
 
 import java.util.List;
 
@@ -70,7 +79,9 @@ public class ProdutoGUI extends Application {
 		// Botão Adicionar
 		Button addButton = new Button("Adicionar");
 		addButton.setOnAction(e ->{
-			String preco = precoInput.getText()replace(',','.');//onde tiver ',' colocar ponto
+
+			String preco = precoInput.getText().replace(',','.'); //onde tiver ',' colocar ponto
+
 			Produto produto = new Produto(nomeInput.getText(),
 				Integer.parseInt(quantidadeInput.getText()),
 				Double.parseDouble(preco),
@@ -92,7 +103,7 @@ public class ProdutoGUI extends Application {
 
 				selectedProduto.setQuantidade(Integer.parseInt(quantidadeInput.getText()));
 
-				String preco = precoInput.getText()replace(',','.');//onde tiver ',' colocar ponto
+				String preco = precoInput.getText().replace(',','.');//onde tiver ',' colocar ponto
 				selectedProduto.setPreco(Double.parseDouble(preco));
 
 				selectedProduto.setStatus(statusComboBox.getValue());
@@ -113,6 +124,8 @@ public class ProdutoGUI extends Application {
 				limparCampos(); // Limpas os campos de entrada para nova digitalização
 			}
 		});
+		deleteButton.getStyleClass().add("excluir");
+
 
 		// Botão Limpar 
 		Button clearButton = new Button("Limpar Campos");
@@ -147,8 +160,35 @@ public class ProdutoGUI extends Application {
 	vbox.getChildren().addAll(nomeProdutoHbox,quantidadeHbox,precoHbox,statusHbox,buttonBox, tableView);// Layout Final
 
 	Scene cena = new Scene(vbox,800,600);
-	// cena.getStylesheet().add("styles-produtos.css")//Folha de estilos
+	cena.getStylesheets().add("styles-produtos.css");//Folha de estilos
 	palco.setScene(cena);
 	palco.show();
+
+	}
+
+	// Metodo Stop: automaticamente chamado quando o sitema é encerrado!
+	@Override
+	public void stop(){
+		try{
+			conexaoDB.close(); //Fechar conexão com o db
+		}catch(SQLException e){
+			System.err.println("Erro ao fechar conexão: " + e.getMessage());
+		}
+	}
+
+	// metodo limpar campos do formulario
+	private void limparCampos(){
+		nomeInput.clear();
+		quantidadeInput.clear();
+		precoInput.clear();
+		statusComboBox.setValue(null);
+	}
+
+	// Metodo Criar colunas para tableView
+	private TableColumn<Produto,String> criarColuna(String title, String property){
+		TableColumn<Produto, String> col = new TableColumn<>(title);
+		col.setCellValueFactory(new PropertyValueFactory<>(property));
+
+		return col;
 	}
 }
